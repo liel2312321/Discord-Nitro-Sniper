@@ -9,6 +9,7 @@ namespace DiscordNitroSniper
         static void Main()
         {
             Console.WriteLine("Every working code will be printed to the console and outputed to working_gift_codes_txt!" +
+                "\nThe program uses proxies in order to avoid Rate Limit. The use and changing of proxies is done in the background." +
                 "\nRunning task... (Press any key to quit!)");
 
             Thread checkRandomCodeThread1 = new(new ThreadStart(() => CheckRandomCode(1)));
@@ -44,22 +45,6 @@ namespace DiscordNitroSniper
             checkRandomCodeThread15.Start();
             checkRandomCodeThread16.Start();
             Console.ReadKey();
-            checkRandomCodeThread1.Abort();
-            checkRandomCodeThread2.Abort();
-            checkRandomCodeThread3.Abort();
-            checkRandomCodeThread4.Abort();
-            checkRandomCodeThread5.Abort();
-            checkRandomCodeThread6.Abort();
-            checkRandomCodeThread7.Abort();
-            checkRandomCodeThread8.Abort();
-            checkRandomCodeThread9.Abort();
-            checkRandomCodeThread10.Abort();
-            checkRandomCodeThread11.Abort();
-            checkRandomCodeThread12.Abort();
-            checkRandomCodeThread13.Abort();
-            checkRandomCodeThread14.Abort();
-            checkRandomCodeThread15.Abort();
-            checkRandomCodeThread16.Abort();
         }
 
         static async Task CheckRandomCode(int threadNumber)
@@ -75,21 +60,38 @@ namespace DiscordNitroSniper
                 try
                 {
                     string response = await nitro.CheckNitroCodeWithProxy(giftCode, proxy);
-                    if (!response.Equals("invalid gift"))
+                    if (response.Contains(NitroSniperLib.CodeUrlFirst))
                     {
                         Console.WriteLine($"Working code: {giftCode}\nWriting it to the file...");
                         await nitro.WriteCodeToFile(response);
                     }
-                    else
+                    else if (response.Equals("rate limited"))
+                    {
+                        proxy = await nitro.PickProxy();
+                        if (proxy.Equals("no proxies left"))
+                        {
+                            await nitro.DownloadProxies();
+                            proxy = await nitro.PickProxy();
+                        }
+                    }
+                    else if (response.Equals("invalid gift"))
                     {
                         Console.WriteLine($"Invalid gift code! ({giftCode})");
+                    }
+                    else
+                    {
+                        proxy = await nitro.PickProxy();
+                        if (proxy.Equals("no proxies left"))
+                        {
+                            await nitro.DownloadProxies();
+                            proxy = await nitro.PickProxy();
+                        }
                     }
 
                     giftCode = nitro.GetRandomNitroCode();
                 }
                 catch (TaskCanceledException)
                 {
-                    Console.WriteLine("Slow proxy, skipping...");
                     proxy = await nitro.PickProxy();
                     if (proxy.Equals("no proxies left"))
                     {
@@ -99,7 +101,6 @@ namespace DiscordNitroSniper
                 }
                 catch (System.Net.Http.HttpRequestException)
                 {
-                    Console.WriteLine("Invalid proxy, skipping... (server refused the proxy)");
                     proxy = await nitro.PickProxy();
                     if (proxy.Equals("no proxies left"))
                     {
@@ -109,7 +110,6 @@ namespace DiscordNitroSniper
                 }
                 catch (UriFormatException)
                 {
-                    Console.WriteLine("Invalid proxy, skipping... (parsing url with proxy failed)");
                     proxy = await nitro.PickProxy();
                     if (proxy.Equals("no proxies left"))
                     {

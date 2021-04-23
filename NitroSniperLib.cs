@@ -78,7 +78,8 @@ namespace DiscordNitroSniper
                 return "no proxies left";
 
             proxies.Remove(picked_proxy);
-            await File.WriteAllLinesAsync(ProxiesFile, proxies);
+            string remainedProxies = string.Join("\n", proxies);
+            await File.WriteAllTextAsync(ProxiesFile, remainedProxies);
             return picked_proxy;
         }
 
@@ -110,14 +111,25 @@ namespace DiscordNitroSniper
                 client.Timeout = TimeSpan.FromSeconds(3);
                 response = await client.GetAsync(CodeCheckUrlFirst + giftCode + CodeCheckUrlLast);
             }
+            HttpStatusCode rateLimitedCode = (HttpStatusCode)429;
+            HttpStatusCode successCode = (HttpStatusCode)200;
+            HttpStatusCode invalidCode = (HttpStatusCode)404;
 
-            if (response.StatusCode.Equals(200))
+            if (response.StatusCode.Equals(successCode))
             {
                 return CodeUrlFirst + giftCode;
             }
-            else
+            else if (response.StatusCode.Equals(rateLimitedCode))
+            {
+                return "rate limited";
+            }
+            else if (response.StatusCode.Equals(invalidCode))
             {
                 return "invalid gift";
+            }    
+            else
+            {
+                return "error";
             }
         }
 
