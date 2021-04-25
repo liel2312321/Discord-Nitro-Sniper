@@ -32,8 +32,8 @@ Nothing extra needs to be installed. Only uses default C# libraries.
 ## Setup
 ### To run Discord Nitro Sniper:
 #### For master branch version:
-* Add the 2 files to C# solution.https://github.com/Obscurely/Discord-Nitro-Sniper/blob/master/Screenshots/screenshot.png
-* And Compile it.
+* Download the solution.
+* Compile it.
 
 #### For release versions:
 * Download the archive for your os.
